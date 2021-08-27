@@ -7,7 +7,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 public class Driver {
@@ -66,29 +69,24 @@ public class Driver {
                         driverPool.get().manage().window().maximize();
                         driverPool.get().manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
                         break;
-
+                    case "remote-ChromeSSL":
+                        WebDriverManager.chromedriver().setup();
+                        ChromeOptions remoteCapabilities = new ChromeOptions();
+                        remoteCapabilities.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+                        remoteCapabilities.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+                        remoteCapabilities.setCapability("platform", Platform.ANY);
+                        try{
+                            driverPool.set(new RemoteWebDriver(new URL("http://44.193.239.83:4444/wd/hub"),remoteCapabilities));
+                        }catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
                 }
             }
         }
-
-        /*
-        Same driver instance will be returned every time we call Driver.getDriver(); method
-         */
         return driverPool.get();
-
-
     }
-
-    /*
-    This method makes sure we have some form of driver sesion or driver id has.
-    Either null or not null it must exist.
-     */
     public static void closeDriver() {
-        if (driverPool.get() != null) {
-            driverPool.get().quit();
-            driverPool.remove();
-        }
+        driverPool.get().quit();
+        driverPool.remove();
     }
-
-
 }
